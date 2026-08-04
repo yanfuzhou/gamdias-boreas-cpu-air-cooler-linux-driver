@@ -2,6 +2,7 @@ use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
 use walkdir::WalkDir;
+use regex::Regex;
 
 fn read_lines_simple<P>(filename: P) -> io::Result<Vec<String>>
 where
@@ -16,19 +17,30 @@ where
 }
 
 fn find_chip_hwmon_path(lines: &[String]) -> Option<PathBuf> {
-    // Read the main hwmon class directory
-    let paths = fs::read_dir("/sys/class/hwmon").ok()?;
-    let pattern = "hwmon";
+    //let root = "/sys/class/hwmon";
+    let root = "sys/class/hwmon";
 
-    for entry in paths.flatten() {
-        let path = entry.path();
-        let name_path = path.join("name");
+    // Verify existence safely and it is a directory
+    if Path::new(root).is_dir() {
+        let pattern = Regex::new(r"^hwmon[0-9]$").unwrap();
 
-        // Read the "name" file inside the hwmon folder to check the driver
-        if let Ok(name) = fs::read_to_string(name_path) {
-            let search_name = name.trim();
-            if lines.contains(&String::from(search_name)) {
-                return Some(path);
+        // Read the main hwmon class directory
+        for entry in WalkDir::new(root).follow_links(true) {
+            let entry = entry.unwrap();
+            if entry.file_type().is_dir() {
+                let name = entry.file_name().to_string_lossy();
+                if pattern.is_match(&name) {
+                    let path = entry.into_path();
+                    let name_path = path.join("name");
+
+                    // Read the "name" file inside the hwmon folder to check the driver
+                    if let Ok(name) = fs::read_to_string(name_path) {
+                        let search_name = name.trim();
+                        if lines.contains(&String::from(search_name)) {
+                            return Some(path);
+                        }
+                    }
+                }
             }
         }
     }
