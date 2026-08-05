@@ -13,6 +13,20 @@ use crossterm::{
 
 use configuration::{get_run_parameters, Mode};
 
+fn read_temp_rpm(temp_path: PathBuf, fan_path: PathBuf) -> (f32, i32) {
+        // Read and parse the raw temperature string
+        let raw_temp = read_to_string(temp_path).unwrap_or(String::from("-1"));
+        let milli_celsius: i32 = raw_temp.trim().parse().unwrap_or(-1);
+        let temp = milli_celsius as f32 / 1000.0;
+
+        // Read and parse the raw RPM string
+        let raw_speed = read_to_string(fan_path).unwrap_or(String::from("-1"));
+        let rpm: i32 = raw_speed.trim().parse().unwrap_or(-1);
+
+        (temp, rpm)
+}
+
+// Todo: make main() function take argument from console
 fn main() {
     let (update_interval_ms, boreas_display, temp_path, fan_path) = get_run_parameters();
 
@@ -28,44 +42,16 @@ fn main() {
 
     while running {
         // 2. Perform your background loop tasks here
-        // Read and parse the raw RPM string
-        let raw_speed = match read_to_string(fan_path) {
-            Ok(v) => v,
-            Err(e) => {
-                eprintln!("Error reading CPU raw speed: {}", e);
-                return;
-            }
-        };
-        let rpm: u32 = match raw_speed
-            .trim()
-            .parse()
-            .map_err(|e| Error::new(ErrorKind::InvalidData, e)) {
-                Ok(v) => v,
-                Err(e) => {
-                    eprintln!("Error converting CPU raw speed to rpm: {}", e);
-                    return;
-                }            
-            };
-        
-        // Read and parse the raw temperature string
-        let raw_temp = match read_to_string(temp_path) {
-            Ok(v) => v,
-            Err(e) => {
-                eprintln!("Error reading CPU raw temperature: {}", e);
-                return;
-            }
-        };
-        let milli_celsius: i32 = match raw_temp.trim().parse() {
-            Ok(v) => v,
-            Err(e) => {
-                eprintln!("Error converting CPU raw temperature to celsius: {}", e);
-                return;
-            }
-        };
-        let temp = milli_celsius as f32 / 1000.0;
+        let (temp, rpm) = read_temp_rpm(temp_path, fan_path);
 
         println!("CPU Temperature: {} °C", temp);
         println!("Fan 1 Speed: {} RPM", rpm);
+
+        // Todo: 
+        // search display by vender id, then get product id from it
+        // connect to display
+        // create protocol packet (can be moved to top)
+        // send packet to display
 
         // 3. Poll for keyboard events for 50 milliseconds (Non-blocking)
         if event::poll(Duration::from_millis(50))? {
