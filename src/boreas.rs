@@ -1,5 +1,5 @@
-mod cpu_fan_data;
-mod configuration;
+mod data;
+mod config;
 
 use std::path::PathBuf;
 use std::time::Duration;
@@ -11,7 +11,7 @@ use crossterm::{
     terminal::{disable_raw_mode, enable_raw_mode},
 };
 
-use configuration::{get_run_parameters, Mode};
+use config::{get_run_parameters, Mode};
 
 fn read_temp_rpm(temp_path: PathBuf, fan_path: PathBuf) -> (f32, i32) {
         // Read and parse the raw temperature string

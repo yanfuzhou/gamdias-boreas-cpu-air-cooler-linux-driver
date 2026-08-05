@@ -6,7 +6,7 @@ use regex::Regex;
 use walkdir::WalkDir;
 use serde::{Deserialize, Serialize};
 
-use crate::cpu_fan_data::{CPU_TEM0, CPU_TEM1, CPU_FAN0};
+use crate::data::{CPU_TEM0, CPU_TEM1, CPU_FAN0};
 
 #[derive(Debug, Deserialize, Serialize)]
 struct Sensors {
