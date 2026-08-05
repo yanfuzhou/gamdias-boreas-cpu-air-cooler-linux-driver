@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 use walkdir::WalkDir;
 use regex::Regex;
 
-fn read_supported_chips<P>(filename: P) -> io::Result<Vec<String>>
+fn read_supported<P>(filename: P) -> io::Result<Vec<String>>
 where
     P: AsRef<Path>,
 {
@@ -16,7 +16,7 @@ where
     Ok(lines)
 }
 
-fn find_cpu_fan_sensor_path(lines: &[String]) -> Option<PathBuf> {
+fn find_cpu_sensor_path(lines: &[String]) -> Option<PathBuf> {
     let root = "/sys/class/hwmon";
 
     // Verify existence safely and it is a directory
@@ -25,6 +25,7 @@ fn find_cpu_fan_sensor_path(lines: &[String]) -> Option<PathBuf> {
 
         // Read the main hwmon class directory
         for entry in WalkDir::new(root)
+        .min_depth(1).max_depth(1)
         .follow_links(true)
         .into_iter()
         .filter_map(|e| e.ok()) {
@@ -50,7 +51,7 @@ fn find_cpu_fan_sensor_path(lines: &[String]) -> Option<PathBuf> {
 
 fn read_cpu_fan_speed(lines: &[String]) -> Result<u32, std::io::Error> {
     // Find the correct hwmon directory dynamically
-    let hwmon_dir = find_cpu_fan_sensor_path(&lines)
+    let hwmon_dir = find_cpu_sensor_path(&lines)
         .ok_or_else(|| std::io::Error::new(std::io::ErrorKind::NotFound, "no chip driver found in hwmon"))?;
 
     // Construct the path to fan1_input
@@ -66,14 +67,50 @@ fn read_cpu_fan_speed(lines: &[String]) -> Result<u32, std::io::Error> {
     Ok(rpm)
 }
 
+fn read_cpu_temp(lines: &[String])  -> Result<f32, Box<dyn std::error::Error>> {
+    // Find the correct hwmon directory dynamically
+    let hwmon_dir = find_cpu_sensor_path(&lines)
+        .ok_or_else(|| std::io::Error::new(std::io::ErrorKind::NotFound, "no cpu driver found in hwmon"))?;
+    
+    // Construct the path to temp1_input
+    let temp_path = hwmon_dir.join("temp1_input");
+
+    // Read and parse the raw temperature string
+    let temp = fs::read_to_string(temp_path)?;
+    let milli_celsius: i32 = temp.trim().parse()?;
+    Ok(milli_celsius as f32 / 1000.0)
+}
+
 fn main() {
-    match read_supported_chips("chips") {
-        Ok(lines) => {
-            match read_cpu_fan_speed(&lines) {
-                Ok(rpm) => println!("Fan 1 Speed: {} RPM", rpm),
-                Err(e) => eprintln!("Failed to read fan speed: {}", e),
-            }
+    let cpus = match read_supported("cpus") {
+        Ok(cpus) => cpus,
+        Err(e) => {
+            eprintln!("Error reading supported cpus: {}", e);
+            return;
         }
-        Err(e) => eprintln!("Error reading file: {}", e),
-    }
+    };
+    let temp = match read_cpu_temp(&cpus) {
+        Ok(temp) => temp,
+        Err(e) => {
+            eprintln!("Error reading CPU temperature: {}", e);
+            return;
+        }
+    };
+    println!("CPU Temperature: {} °C", temp);
+
+    let chips = match read_supported("chips") {
+        Ok(chips) => chips,
+        Err(e) => {
+            eprintln!("Error reading supported chips: {}", e);
+            return;
+        }
+    };
+    let rpm = match read_cpu_fan_speed(&chips) {
+        Ok(rpm) => rpm,
+        Err(e) => {
+            eprintln!("Error reading CPU fan speed: {}", e);
+            return;
+        }
+    };
+    println!("Fan 1 Speed: {} RPM", rpm);
 }
