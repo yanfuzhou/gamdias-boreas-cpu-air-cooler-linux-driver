@@ -1,4 +1,4 @@
-mod superio;
+mod data;
 mod configuration;
 
 use std::time::Duration;
@@ -13,7 +13,7 @@ use crossterm::{
     terminal::{disable_raw_mode, enable_raw_mode},
 };
 
-use superio::{CPU_TEM0, CPU_TEM1, CPU_FAN0};
+use data::{CPU_TEM0, CPU_TEM1, CPU_FAN0};
 use configuration::{Sensors, Mode, Config, read_config};
 
 fn find_sensor_path(lines: &[String]) -> Option<PathBuf> {
