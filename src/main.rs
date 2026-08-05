@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 use walkdir::WalkDir;
 use regex::Regex;
 
-fn read_lines_simple<P>(filename: P) -> io::Result<Vec<String>>
+fn read_supported_chips<P>(filename: P) -> io::Result<Vec<String>>
 where
     P: AsRef<Path>,
 {
@@ -16,17 +16,18 @@ where
     Ok(lines)
 }
 
-fn find_chip_hwmon_path(lines: &[String]) -> Option<PathBuf> {
-    //let root = "/sys/class/hwmon";
-    let root = "sys/class/hwmon";
+fn find_cpu_fan_sensor_path(lines: &[String]) -> Option<PathBuf> {
+    let root = "/sys/class/hwmon";
 
     // Verify existence safely and it is a directory
     if Path::new(root).is_dir() {
         let pattern = Regex::new(r"^hwmon[0-9]$").unwrap();
 
         // Read the main hwmon class directory
-        for entry in WalkDir::new(root).follow_links(true) {
-            let entry = entry.unwrap();
+        for entry in WalkDir::new(root)
+        .follow_links(true)
+        .into_iter()
+        .filter_map(|e| e.ok()) {
             if entry.file_type().is_dir() {
                 let name = entry.file_name().to_string_lossy();
                 if pattern.is_match(&name) {
@@ -47,9 +48,9 @@ fn find_chip_hwmon_path(lines: &[String]) -> Option<PathBuf> {
     None
 }
 
-fn read_fan1_speed(lines: &[String]) -> Result<u32, std::io::Error> {
+fn read_cpu_fan_speed(lines: &[String]) -> Result<u32, std::io::Error> {
     // Find the correct hwmon directory dynamically
-    let hwmon_dir = find_chip_hwmon_path(&lines)
+    let hwmon_dir = find_cpu_fan_sensor_path(&lines)
         .ok_or_else(|| std::io::Error::new(std::io::ErrorKind::NotFound, "no chip driver found in hwmon"))?;
 
     // Construct the path to fan1_input
@@ -66,9 +67,9 @@ fn read_fan1_speed(lines: &[String]) -> Result<u32, std::io::Error> {
 }
 
 fn main() {
-    match read_lines_simple("chips") {
+    match read_supported_chips("chips") {
         Ok(lines) => {
-            match read_fan1_speed(&lines) {
+            match read_cpu_fan_speed(&lines) {
                 Ok(rpm) => println!("Fan 1 Speed: {} RPM", rpm),
                 Err(e) => eprintln!("Failed to read fan speed: {}", e),
             }
