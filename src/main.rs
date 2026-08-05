@@ -14,7 +14,7 @@ use crossterm::{
 };
 
 use superio::{CPU_TEM0, CPU_TEM1, CPU_FAN0};
-use configuration::{Sensors, Mode, Config};
+use configuration::{Sensors, Mode, Config, read_config};
 
 fn find_sensor_path(lines: &[String]) -> Option<PathBuf> {
     let root = "/sys/class/hwmon";
@@ -69,17 +69,6 @@ fn get_cpu_temp_sensor(lines: &[String])  -> Result<PathBuf, Box<dyn std::error:
     let temp_path = hwmon_dir.join("temp1_input");
 
     Ok(temp_path)
-}
-
-fn read_config() -> Result<(), Box<dyn std::error::Error>> {
-    // Opens file relative to the project root directory
-    let mut file = File::open("config.json")?;
-    let mut contents = String::new();
-    file.read_to_string(&mut contents)?;
-
-    let config: Config = serde_json::from_str(&contents)?;
-
-    Ok(config)
 }
 
 fn main() {

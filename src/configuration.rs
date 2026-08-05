@@ -20,3 +20,14 @@ struct Config {
     sensors: Sensors,
     display: Vec<Mode>,
 }
+
+fn read_config() -> Result<Config, Box<dyn std::error::Error>> {
+    // Opens file relative to the project root directory
+    let mut file = File::open("config.json")?;
+    let mut contents = String::new();
+    file.read_to_string(&mut contents)?;
+
+    let config: Config = serde_json::from_str(&contents)?;
+
+    Ok(config)
+}
