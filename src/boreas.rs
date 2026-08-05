@@ -1,3 +1,4 @@
+mod cpu_fan_data;
 mod configuration;
 
 use std::path::PathBuf;
