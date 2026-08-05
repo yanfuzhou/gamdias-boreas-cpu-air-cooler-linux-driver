@@ -1,6 +1,6 @@
-const CPU_TEM0: [&str; 3] = ["coretemp", "k10temp", "zenpower"];
-const CPU_TEM1: [&str; 2] = ["cpu_thermal", "acpitz"];
-const CPU_FAN0: [&str; 45] = [
+pub const CPU_TEM0: [&str; 3] = ["coretemp", "k10temp", "zenpower"];
+pub const CPU_TEM1: [&str; 2] = ["cpu_thermal", "acpitz"];
+pub const CPU_FAN0: [&str; 45] = [
     "nct6687", "nct6798", "nct6775", 
     "it8603", "it8606", "it8607", "it8613", "it8620", 
     "it8622", "it8623", "it8625", "it8628", "it8528", 
