@@ -1,0 +1,17 @@
+{
+  "update_interval_ms": 1000,
+  "sensors": {
+    "cpu_temp_path": null,
+    "cpu_fan_path": null
+  },
+  "display": [
+    {
+      "mode": "CpuTempCelsius",
+      "duration_seconds": 10
+    },
+    {
+      "mode": "CpuFanSpeed",
+      "duration_seconds": 5
+    }
+  ]
+}
