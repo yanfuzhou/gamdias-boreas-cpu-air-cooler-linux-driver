@@ -1,19 +1,14 @@
 mod data;
 mod config;
 
+use std::thread;
 use std::path::PathBuf;
 use std::time::Duration;
 use std::fs::read_to_string;
-use std::io::{Error, ErrorKind};
 
-use crossterm::{
-    event::{self, Event, KeyCode, KeyEventKind},
-    terminal::{disable_raw_mode, enable_raw_mode},
-};
+use config::get_run_parameters;
 
-use config::{get_run_parameters, Mode};
-
-fn read_temp_rpm(temp_path: PathBuf, fan_path: PathBuf) -> (f32, i32) {
+fn read_temp_rpm(temp_path: &PathBuf, fan_path: &PathBuf) -> (f32, i32) {
         // Read and parse the raw temperature string
         let raw_temp = read_to_string(temp_path).unwrap_or(String::from("-1"));
         let milli_celsius: i32 = raw_temp.trim().parse().unwrap_or(-1);
@@ -30,52 +25,26 @@ fn read_temp_rpm(temp_path: PathBuf, fan_path: PathBuf) -> (f32, i32) {
 fn main() {
     let (update_interval_ms, boreas_display, temp_path, fan_path) = get_run_parameters();
 
-    println!("update_interval_ms: {:?}", update_interval_ms);
-    println!("display: {:?}", boreas_display);
-
-    // 1. Enable raw mode to read keys immediately without waiting for Enter
-    enable_raw_mode()?;
-    println!("Loop started. Press 'q' or 'Esc' to interrupt...\r");
+    for mode in boreas_display.iter() {
+        println!("Mode: {}, Duration: {} seconds", mode.mode, mode.duration_seconds);
+    }
 
     // Your conditional variable for the while loop
-    let mut running = true;
+    let running = true;
 
     while running {
         // 2. Perform your background loop tasks here
-        let (temp, rpm) = read_temp_rpm(temp_path, fan_path);
+        let (temp, rpm) = read_temp_rpm(&temp_path, &fan_path);
 
         println!("CPU Temperature: {} °C", temp);
         println!("Fan 1 Speed: {} RPM", rpm);
+
+        thread::sleep(Duration::from_millis(update_interval_ms as u64));
 
         // Todo: 
         // search display by vender id, then get product id from it
         // connect to display
         // create protocol packet (can be moved to top)
         // send packet to display
-
-        // 3. Poll for keyboard events for 50 milliseconds (Non-blocking)
-        if event::poll(Duration::from_millis(50))? {
-            // 4. Read the available event
-            if let Event::Key(key) = event::read()? {
-                // Filter out key release events (mainly relevant on Windows)
-                if key.kind == KeyEventKind::Press {
-                    match key.code {
-                        // 5. Check if the interrupt key was pressed
-                        KeyCode::Char('q') | KeyCode::Esc => {
-                            println!("\nInterrupt received! Exiting loop...\r");
-                            running = false; 
-                        }
-                        _ => {}
-                    }
-                }
-            }
-        }
-
-        // Throttle the loop slightly if your task doesn't take time
-        std::thread::sleep(Duration::from_millis(200));
     }
-
-    // 6. Always disable raw mode before exiting to restore standard terminal behavior
-    disable_raw_mode()?;
-    println!("Program finished successfully.");
 }

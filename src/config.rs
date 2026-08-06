@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
-use std::io::{Error, ErrorKind};
 use std::fs::{read_to_string, File};
+use std::io::{Error, ErrorKind, Read};
 
 use regex::Regex;
 use walkdir::WalkDir;
@@ -15,9 +15,9 @@ struct Sensors {
 }
 
 #[derive(Debug, Deserialize, Serialize)]
-struct Mode {
-    mode: String,
-    duration_seconds: u32
+pub struct Mode {
+    pub mode: String,
+    pub duration_seconds: u32
 }
 
 #[derive(Debug, Deserialize)]
@@ -95,54 +95,49 @@ fn read_config() -> Result<Config, Box<dyn std::error::Error>> {
 
 pub fn get_run_parameters() -> (u32, Vec<Mode>, PathBuf, PathBuf) {
     // Opens file relative to the project root directory
-    let config = match read_config() {
-        Ok(v) => v,
-        Err(e) => {
-            eprintln!("Error reading configuration: {}", e);
-            return new::Config;
-        }
-    };
+    let config = read_config().unwrap_or(
+        Config { 
+            update_interval_ms: 1000, 
+            sensors: Sensors { 
+                cpu_temp_path: None, 
+                cpu_fan_path: None 
+            }, 
+            display: vec![
+                Mode {
+                    mode: "CpuTempCelsius".to_string(), 
+                    duration_seconds: 5
+                }, 
+                Mode {
+                    mode: "CpuFanSpeed".to_string(), 
+                    duration_seconds: 10
+                }
+                ]
+            }
+    );
     let update_interval_ms = config.update_interval_ms;
     let boreas_display = config.display;
     let cpu_sensors = config.sensors;
 
     let temp_path: PathBuf;
 
-    if !cpu_sensors.cpu_temp_path.is_null() {
-        let cpu_temp_path = String::from(cpu_sensors.cpu_temp_path);
-        temp_path = PathBuf::from(&cpu_temp_path);
-    } else {
+    if cpu_sensors.cpu_temp_path.is_none() {
         let cpu_tem0: Vec<String> = CPU_TEM0.iter().map(|&s| s.to_string()).collect();
-        temp_path = match get_cpu_temp_sensor(&cpu_tem0) {
-            Ok(v) => v,
-            Err(e1) => {
-                eprintln!("Error finding CPU temperature sensor #0: {}", e1);
-                let cpu_tem1: Vec<String> = CPU_TEM1.iter().map(|&s| s.to_string()).collect();
-                match get_cpu_temp_sensor(&cpu_tem1) {
-                    Ok(v) => v,
-                    Err(e2) => {
-                        eprintln!("Error finding CPU temperature sensor #1: {}", e2);
-                        return new::PathBuf;
-                    }
-                }
-            }
-        };
+        let cpu_tem1: Vec<String> = CPU_TEM1.iter().map(|&s| s.to_string()).collect();
+        temp_path = get_cpu_temp_sensor(&cpu_tem0)
+            .unwrap_or(get_cpu_temp_sensor(&cpu_tem1)
+            .expect("Failed to find CPU temperature sensor"));
+    } else {
+        temp_path = PathBuf::from(cpu_sensors.cpu_temp_path.unwrap());
     }
 
     let fan_path: PathBuf;
 
-    if !cpu_sensors.cpu_fan_path.is_null() {
-        let cpu_fan_path = String::from(cpu_sensors.cpu_fan_path);
-        fan_path = PathBuf::from(&cpu_fan_path);
-    } else {
+    if cpu_sensors.cpu_fan_path.is_none() {
         let cpu_fan0: Vec<String> = CPU_FAN0.iter().map(|&s| s.to_string()).collect();
-        fan_path = match get_cpu_fan_speed_sensor(&cpu_fan0) {
-            Ok(v) => v,
-            Err(e) => {
-                eprintln!("Error finding CPU fan speed sensor #0: {}", e);
-                return new::Pathbuff;
-            }
-        };
+        fan_path = get_cpu_fan_speed_sensor(&cpu_fan0)
+            .expect("Failed to find CPU fan speed sensor");
+    } else {
+        fan_path = PathBuf::from(cpu_sensors.cpu_fan_path.unwrap());
     }
 
     (update_interval_ms, boreas_display, temp_path, fan_path)
