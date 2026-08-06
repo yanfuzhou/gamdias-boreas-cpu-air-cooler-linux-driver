@@ -21,8 +21,25 @@ fn read_temp_rpm(temp_path: &PathBuf, fan_path: &PathBuf) -> (f32, i32) {
         (temp, rpm)
 }
 
+fn get_device() -> Option<rusb::DeviceDescriptor> {
+    for device in rusb::devices().unwrap().iter() {
+        let device_desc = device.device_descriptor().unwrap();
+
+        if device_desc.vendor_id() == 0x1b80 {
+            return Some(device_desc);
+        }
+    }
+    None
+}
+
 // Todo: make main() function take argument from console
 fn main() {
+    // Search device by vender id and product id
+    let device = get_device().expect("Device not found");
+    let vendor_id = device.vendor_id();
+    let product_id = device.product_id();
+    println!("ID {:04x}:{:04x}", vendor_id, product_id);
+
     let (update_interval_ms, boreas_display, temp_path, fan_path) = get_run_parameters();
 
     for mode in boreas_display.iter() {
@@ -42,7 +59,6 @@ fn main() {
         thread::sleep(Duration::from_millis(update_interval_ms as u64));
 
         // Todo: 
-        // search display by vender id, then get product id from it
         // connect to display
         // create protocol packet (can be moved to top)
         // send packet to display
