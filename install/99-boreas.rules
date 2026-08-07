@@ -1,0 +1,3 @@
+# GAMDIAS BOREAS M2-51D Display
+SUBSYSTEM=="hidraw", ATTRS{idVendor}=="1b80", ATTRS{idProduct}=="b554", MODE="0666"
+SUBSYSTEM=="usb", ATTRS{idVendor}=="1b80", ATTRS{idProduct}=="b554", MODE="0666"

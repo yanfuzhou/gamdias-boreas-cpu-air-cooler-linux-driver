@@ -8,9 +8,9 @@ name = "gamdias-boreas-air-cooler-linux-driver"
 path = "src/boreas.rs"
 
 [dependencies]
-rusb = "0.9.4"
 regex = "1.13.1"
 walkdir = "2.5.0"
 serde_json = "1.0.151"
 serde = { version = "1.0.229", features = ["derive"] }
 chrono = "0.4.45"
+hidapi = "2.6.6"

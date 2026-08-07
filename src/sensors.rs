@@ -8,6 +8,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::data::{CPU_TEM0, CPU_TEM1, CPU_FAN0};
 
+pub const VERBOSE: bool = false; // Set to true to enable verbose logging
+
 #[derive(Debug, Deserialize, Serialize)]
 struct Sensors {
     cpu_temp_path: Option<String>,
@@ -91,6 +93,19 @@ fn read_config() -> Result<Config, Box<dyn std::error::Error>> {
     let config: Config = serde_json::from_str(&contents)?;
 
     Ok(config)
+}
+
+pub fn read_temp_rpm(temp_path: &PathBuf, fan_path: &PathBuf) -> (f32, i32) {
+        // Read and parse the raw temperature string
+        let raw_temp = read_to_string(temp_path).unwrap_or(String::from("-1"));
+        let milli_celsius: i32 = raw_temp.trim().parse().unwrap_or(-1);
+        let temp = milli_celsius as f32 / 1000.0;
+
+        // Read and parse the raw RPM string
+        let raw_speed = read_to_string(fan_path).unwrap_or(String::from("-1"));
+        let rpm: i32 = raw_speed.trim().parse().unwrap_or(-1);
+
+        (temp, rpm)
 }
 
 pub fn get_run_parameters() -> (u32, Vec<Mode>, PathBuf, PathBuf) {
