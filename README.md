@@ -222,5 +222,5 @@ This project is licensed under the GNU General Public License v3.0 - see the LIC
 
 - GAMDIAS BOREAS P2-62D Linux Driver by [Riaan Aspeling](https://github.com/RiaanAspeling/gamdias-boreas-P2-62D-linux)
 - Protocol reverse-engineered from GAMDIAS ZEUS CAST Windows application
-- Uses [HidApi.Net](https://github.com/badcel/HidApi.Net) for USB HID communication
+- Uses [hidapi - Rust](https://docs.rs/hidapi/latest/hidapi/) for USB HID communication
 - IT87 driver by [Frank Crawford](https://github.com/frankcrawford/it87)
