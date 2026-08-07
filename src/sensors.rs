@@ -112,7 +112,7 @@ pub fn get_run_parameters() -> (u32, Vec<Mode>, PathBuf, PathBuf) {
     // Opens file relative to the project root directory
     let config = read_config().unwrap_or(
         Config { 
-            update_interval_ms: 1000, 
+            update_interval_ms: 500, 
             sensors: Sensors { 
                 cpu_temp_path: None, 
                 cpu_fan_path: None 
@@ -120,15 +120,16 @@ pub fn get_run_parameters() -> (u32, Vec<Mode>, PathBuf, PathBuf) {
             display: vec![
                 Mode {
                     mode: "CpuTempCelsius".to_string(), 
-                    duration_seconds: 5
+                    duration_seconds: 10
                 }, 
                 Mode {
                     mode: "CpuFanSpeed".to_string(), 
-                    duration_seconds: 10
+                    duration_seconds: 6
                 }
                 ]
             }
     );
+    println!("Configuration loaded: {:?}", config);
     let update_interval_ms = config.update_interval_ms;
     let boreas_display = config.display;
     let cpu_sensors = config.sensors;

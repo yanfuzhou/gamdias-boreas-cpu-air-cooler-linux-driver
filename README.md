@@ -1,6 +1,6 @@
-# GAMDIAS BOREAS M2-51D Linux Driver
+# GAMDIAS BOREAS M2-51D/P2-62D Linux Driver
 
-A Linux daemon for the GAMDIAS BOREAS M2-51D digital display (USB ID `1B80:B554`). This device is typically bundled with GAMDIAS CPU coolers and only comes with Windows software (ZEUS CAST).
+A Linux daemon for the GAMDIAS BOREAS M2-51D/P2-62D digital display (USB ID `1B80:B554`/`1B80:B53A`). This device is typically bundled with GAMDIAS CPU coolers and only comes with Windows software (ZEUS CAST).
 
 This project provides a native Linux solution to display CPU temperature and fan speed on the device.
 
@@ -22,28 +22,22 @@ This project provides a native Linux solution to display CPU temperature and fan
 
 ## Prerequisites
 
-- .NET 8.0 Runtime
-- `hidapi` library
+- rustc 1.97.1 (8bab26f4f 2026-07-14)
+- cargo 1.97.1 (c980f4866 2026-06-30)
 - Linux kernel with hwmon support
 
 ### Install Dependencies
 
 ```bash
-# Ubuntu/Debian
-sudo apt install dotnet-runtime-8.0 libhidapi-hidraw0
-
-# Fedora
-sudo dnf install dotnet-runtime-8.0 hidapi
-
 # Arch Linux
-sudo pacman -S dotnet-runtime aspnet-runtime hidapi
+sudo pacman -S rustup
+rustup default stable
 ```
 
 ## Building
 
 ```bash
-cd M2-51D
-dotnet build -c Release
+cargo build --release
 ```
 
 ## Installation
@@ -51,11 +45,9 @@ dotnet build -c Release
 ### 1. Build and Install Binary
 
 ```bash
-cd M2-51D
-dotnet publish -c Release -o publish
-sudo mkdir -p /usr/local/lib/boreas
-sudo cp -r publish/* /usr/local/lib/boreas/
-sudo ln -sf /usr/local/lib/boreas/boreas /usr/local/bin/boreas
+sudo mkdir -p /etc/boreas
+sudo cp target/release/boreas /etc/boreas/boreas
+sudo ln -sf /etc/boreas/boreas /usr/local/bin/boreas
 ```
 
 ### 2. Install udev Rules (for non-root access)
@@ -69,8 +61,7 @@ sudo udevadm trigger
 ### 3. Install Configuration
 
 ```bash
-sudo mkdir -p /etc/boreas
-sudo cp M2-51D/config.json /etc/boreas/
+sudo cp config.json /etc/boreas/
 ```
 
 ### 4. Install systemd Service
@@ -89,14 +80,20 @@ Edit `/etc/boreas/config.json`:
 
 ```json
 {
-  "UpdateIntervalMs": 1000,
-  "Sensors": {
-    "CpuTempPath": null,
-    "CpuFanPath": null
+  "update_interval_ms": 500,
+  "sensors": {
+    "cpu_temp_path": null,
+    "cpu_fan_path": null
   },
-  "Display": [
-    { "Mode": "CpuTempCelsius", "DurationSeconds": 10 },
-    { "Mode": "CpuFanSpeed", "DurationSeconds": 5 }
+  "display": [
+    {
+      "mode": "CpuTempCelsius",
+      "duration_seconds": 10
+    },
+    {
+      "mode": "CpuFanSpeed",
+      "duration_seconds": 6
+    }
   ]
 }
 ```
@@ -105,12 +102,10 @@ Edit `/etc/boreas/config.json`:
 
 | Field | Description |
 |-------|-------------|
-| `UpdateIntervalMs` | How often to update the display (milliseconds) |
-| `CpuTempPath` | Path to temperature sensor, or `null` for auto-detect |
-| `CpuFanPath` | Path to fan sensor, or `null` for auto-detect |
-| `Display` | List of display modes to rotate through |
-
-*Note: `null` for auto-detect sometimes not working, recommended to manually specify the value
+| `update_interval_ms` | How often to update the display (milliseconds) |
+| `cpu_temp_path` | Path to temperature sensor, or `null` for auto-detect |
+| `cpu_fan_path` | Path to fan sensor, or `null` for auto-detect |
+| `display` | List of display modes to rotate through |
 
 ### Display Modes
 
@@ -123,18 +118,6 @@ Edit `/etc/boreas/config.json`:
 ```bash
 # Run with default config
 boreas
-
-# Run with custom config
-boreas /path/to/config.json
-
-# List available sensors
-boreas --list-sensors
-
-# Generate sample config
-boreas --generate-config
-
-# Run display test
-boreas --test
 ```
 
 ## Fan Speed Monitoring
@@ -158,9 +141,7 @@ ls /sys/class/hwmon/*/name
 Gigabytes motherboards often use the IT87 Super I/O chip which requires a third-party driver:
 
 ```bash
-# Install build dependencies
-sudo apt install build-essential linux-headers-$(uname -r) dkms git
-
+# This is tested on Gigabytes B550M Gaming X Wifi 6 Motherboard
 # Clone and install the driver
 git clone https://github.com/frankcrawford/it87.git
 cd it87
@@ -226,20 +207,13 @@ The USB HID protocol was reverse-engineered from the Windows ZEUS CAST applicati
 2. Install appropriate hwmon driver for your motherboard
 3. Manually specify the fan path in config.json
 
-### Permission denied
-
-Ensure udev rules are installed and you're in the `plugdev` group:
-```bash
-sudo usermod -aG plugdev $USER
-# Log out and back in
-```
-
 ## License
 
 This project is licensed under the GNU General Public License v3.0 - see the LICENSE file for details.
 
 ## Acknowledgments
 
+- GAMDIAS BOREAS P2-62D Linux Driver by [Riaan Aspeling](https://github.com/RiaanAspeling/gamdias-boreas-P2-62D-linux)
 - Protocol reverse-engineered from GAMDIAS ZEUS CAST Windows application
 - Uses [HidApi.Net](https://github.com/badcel/HidApi.Net) for USB HID communication
 - IT87 driver by [frankcrawford](https://github.com/frankcrawford/it87)

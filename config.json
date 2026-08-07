@@ -1,5 +1,5 @@
 {
-  "update_interval_ms": 1000,
+  "update_interval_ms": 500,
   "sensors": {
     "cpu_temp_path": null,
     "cpu_fan_path": null
@@ -11,7 +11,7 @@
     },
     {
       "mode": "CpuFanSpeed",
-      "duration_seconds": 5
+      "duration_seconds": 6
     }
   ]
 }

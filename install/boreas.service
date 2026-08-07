@@ -4,7 +4,7 @@ After=multi-user.target
 
 [Service]
 Type=simple
-ExecStart=/usr/local/bin/boreas /etc/boreas/config.json
+ExecStart=/usr/local/bin/boreas
 Restart=on-failure
 RestartSec=5
 

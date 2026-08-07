@@ -1,10 +1,10 @@
 [package]
-name = "sensor_reader"
+name = "gamdias-boreas-air-cooler-linux-driver"
 version = "0.1.0"
 edition = "2024"
 
 [[bin]]
-name = "gamdias-boreas-air-cooler-linux-driver"
+name = "boreas"
 path = "src/boreas.rs"
 
 [dependencies]
@@ -14,3 +14,4 @@ serde_json = "1.0.151"
 serde = { version = "1.0.229", features = ["derive"] }
 chrono = "0.4.45"
 hidapi = "2.6.6"
+ctrlc = "3.5.2"

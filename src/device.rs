@@ -28,6 +28,7 @@ pub fn get_device() -> Option<hidapi::HidDevice> {
                     ));
                     // Try to open the device and return the handle
                     if let Ok(handle) = api.open(device.vendor_id(), device.product_id()) {
+                        println!("Successfully connected to device: {}", device.product_string().unwrap_or("Unknown"));
                         return Some(handle);
                     } else {
                         eprintln!(
