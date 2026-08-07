@@ -1,8 +1,15 @@
-# GAMDIAS BOREAS M2-51D/P2-62D Linux Driver
+# GAMDIAS BOREAS CPU Air Cooler Linux Driver
 
-A Linux daemon for the GAMDIAS BOREAS M2-51D/P2-62D digital display (USB ID `1B80:B554`/`1B80:B53A`). This device is typically bundled with GAMDIAS CPU coolers and only comes with Windows software (ZEUS CAST).
+A Linux daemon for the GAMDIAS BOREAS CPU Air Cooler with digital display. This device is typically bundled with GAMDIAS CPU coolers and only comes with Windows software (ZEUS CAST).
 
 This project provides a native Linux solution to display CPU temperature and fan speed on the device.
+
+| CPU Air Cooler | USB ID |
+|-------|-------------|
+| [E2-41D](https://www.gamdias.com/en/component/cooler/BOREAS_E2-41D) |  |
+| [M2-51D](https://www.gamdias.com/en/component/cooler/BOREAS_M2-51D) | `1B80:B554` |
+| [M2-61L](https://www.gamdias.com/en/component/cooler/BOREAS_M2-61L) |  |
+| [P2-62D](https://www.gamdias.com/en/component/cooler/BOREAS_P2-62D) | `1B80:B53A` |
 
 ## Features
 
