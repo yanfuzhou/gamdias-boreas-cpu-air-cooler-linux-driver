@@ -1,6 +1,6 @@
 # GAMDIAS BOREAS CPU Air Cooler Linux Driver
 
-A Linux daemon for the GAMDIAS BOREAS CPU Air Cooler with digital display. This device is typically bundled with GAMDIAS CPU coolers and only comes with Windows software (ZEUS CAST).
+A Linux daemon for the GAMDIAS BOREAS CPU Air Cooler with digital display. This device is typically bundled with GAMDIAS CPU coolers and only comes with Windows software ([ZEUS CAST](https://drive.google.com/drive/folders/10FubPWd7OuR8bmZIC5IZPwABQP7xhAXr)).
 
 This project provides a native Linux solution to display CPU temperature and fan speed on the device.
 
@@ -171,7 +171,7 @@ Run `sudo sensors-detect` from the `lm-sensors` package to identify and load the
 
 ## Protocol Documentation
 
-The USB HID protocol was reverse-engineered from the Windows ZEUS CAST application.
+The USB HID protocol was reverse-engineered from the Windows [ZEUS CAST](https://drive.google.com/drive/folders/10FubPWd7OuR8bmZIC5IZPwABQP7xhAXr) application.
 
 ### Packet Structure
 
@@ -221,6 +221,6 @@ This project is licensed under the GNU General Public License v3.0 - see the LIC
 ## Acknowledgments
 
 - GAMDIAS BOREAS P2-62D Linux Driver by [Riaan Aspeling](https://github.com/RiaanAspeling/gamdias-boreas-P2-62D-linux)
-- Protocol reverse-engineered from GAMDIAS ZEUS CAST Windows application
+- Protocol reverse-engineered from GAMDIAS [ZEUS CAST](https://drive.google.com/drive/folders/10FubPWd7OuR8bmZIC5IZPwABQP7xhAXr) Windows application
 - Uses [hidapi - Rust](https://docs.rs/hidapi/latest/hidapi/) for USB HID communication
 - IT87 driver by [Frank Crawford](https://github.com/frankcrawford/it87)
