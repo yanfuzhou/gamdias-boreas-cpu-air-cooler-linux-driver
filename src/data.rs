@@ -1,3 +1,4 @@
+pub const PRODUCTS: [u16; 2] = [0xB554, 0xB53A];
 pub const CPU_TEM0: [&str; 3] = ["coretemp", "k10temp", "zenpower"];
 pub const CPU_TEM1: [&str; 2] = ["cpu_thermal", "acpitz"];
 pub const CPU_FAN0: [&str; 45] = [

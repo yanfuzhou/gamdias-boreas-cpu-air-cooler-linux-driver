@@ -1,5 +1,6 @@
 use hidapi::HidApi;
 
+use crate::data::PRODUCTS;
 use crate::sensors::VERBOSE;
 use crate::protocol::{build_init_packet, build_temperature_packet, build_fan_packet};
 
@@ -26,13 +27,23 @@ pub fn get_device() -> Option<hidapi::HidDevice> {
                         device.product_id(), 
                         device.product_string().unwrap_or("Unknown")
                     ));
-                    // Try to open the device and return the handle
-                    if let Ok(handle) = api.open(device.vendor_id(), device.product_id()) {
-                        println!("Successfully connected to device: {}", device.product_string().unwrap_or("Unknown"));
-                        return Some(handle);
+                    if PRODUCTS.contains(&device.product_id()) {
+                        // Try to open the device and return the handle
+                        if let Ok(handle) = api.open(device.vendor_id(), device.product_id()) {
+                            println!("Successfully connected to device: {}", device.product_string().unwrap_or("Unknown"));
+                            return Some(handle);
+                        } else {
+                            eprintln!(
+                                "Failed to open HID device: {:04x}:{:04x}:{}",
+                                device.vendor_id(),
+                                device.product_id(),
+                                device.product_string().unwrap_or("Unknown")
+                            );
+                            return None;
+                        }
                     } else {
                         eprintln!(
-                            "Failed to open HID device: {:04x}:{:04x}:{}",
+                            "Device not supported: {:04x}:{:04x}:{}",
                             device.vendor_id(),
                             device.product_id(),
                             device.product_string().unwrap_or("Unknown")

@@ -4,12 +4,11 @@ A Linux daemon for the GAMDIAS BOREAS CPU Air Cooler with digital display. This 
 
 This project provides a native Linux solution to display CPU temperature and fan speed on the device.
 
-| CPU Air Cooler | USB ID |
-|-------|-------------|
-| [E2-41D](https://www.gamdias.com/en/component/cooler/BOREAS_E2-41D) |  |
-| [M2-51D](https://www.gamdias.com/en/component/cooler/BOREAS_M2-51D) | `1B80:B554` |
-| [M2-61L](https://www.gamdias.com/en/component/cooler/BOREAS_M2-61L) |  |
-| [P2-62D](https://www.gamdias.com/en/component/cooler/BOREAS_P2-62D) | `1B80:B53A` |
+| CPU Air Cooler | USB ID | Supported |
+|-|-|-|
+| [E2-41D](https://www.gamdias.com/en/component/cooler/BOREAS_E2-41D) | `????:????` | No |
+| [M2-51D](https://www.gamdias.com/en/component/cooler/BOREAS_M2-51D) | `1B80:B554` | Yes |
+| [P2-62D](https://www.gamdias.com/en/component/cooler/BOREAS_P2-62D) | `1B80:B53A` | Yes |
 
 ## Features
 
