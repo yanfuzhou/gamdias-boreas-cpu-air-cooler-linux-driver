@@ -1,5 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2024 BOREAS Linux Project Contributors
+mod data;
+mod config;
+mod device;
+mod protocol;
+mod sensors0;
 
 use std::env;
 use std::fs;
@@ -12,14 +17,8 @@ use std::sync::{
 use std::thread;
 use std::time::{Duration, Instant};
 
-use boreas::{
-    BoreasConfig,
-    BoreasDevice,
-    BoreasProtocol,
-    DisplayItem,
-    DisplayMode,
-    SensorReader,
-};
+use device::DeviceManager;
+use config::ConfigManager;
 
 fn main() {
     let exit_code = run();
@@ -69,7 +68,7 @@ fn run() -> i32 {
         None => return 1,
     };
 
-    let config = match BoreasConfig::load(&config_file) {
+    let config = match ConfigManager::load(&config_file) {
         Ok(config) => {
             println!(
                 "Loaded configuration from: {}",
@@ -161,7 +160,7 @@ fn run_daemon(
         }
     }
 
-    let mut device = BoreasDevice::new();
+    let mut device = DeviceManager::new();
 
     println!("Connecting to BOREAS display...");
 

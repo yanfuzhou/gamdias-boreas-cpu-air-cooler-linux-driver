@@ -1,17 +1,17 @@
 {
-  "update_interval_ms": 500,
-  "sensors": {
-    "cpu_temp_path": null,
-    "cpu_fan_path": null
+  "UpdateIntervalMs": 500,
+  "Sensors": {
+    "CpuTempPath": null,
+    "CpuFanPath": null
   },
-  "display": [
+  "Display": [
     {
-      "mode": "CpuTempCelsius",
-      "duration_seconds": 10
+      "Mode": "CpuTempCelsius",
+      "DurationSeconds": 10
     },
     {
-      "mode": "CpuFanSpeed",
-      "duration_seconds": 6
+      "Mode": "CpuFanSpeed",
+      "DurationSeconds": 6
     }
   ]
 }

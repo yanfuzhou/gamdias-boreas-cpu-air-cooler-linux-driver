@@ -4,8 +4,8 @@ version = "0.1.0"
 edition = "2024"
 
 [[bin]]
-name = "boreas"
-path = "src/boreas.rs"
+name = "program0"
+path = "src/program0.rs"
 
 [dependencies]
 regex = "1.13.1"

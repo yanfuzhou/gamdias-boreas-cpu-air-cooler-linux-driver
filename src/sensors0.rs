@@ -1,8 +1,7 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright (C) 2024 BOREAS Linux Project Contributors
-
-use std::fs;
 use std::path::{Path, PathBuf};
+use std::fs::{read_dir, read_to_string};
+
+use crate::data::{CPU_TEM0, CPU_TEM1, CPU_FAN0};
 
 pub struct SensorReader {
     cpu_temp_path: Option<PathBuf>,
@@ -46,7 +45,7 @@ impl SensorReader {
             return None;
         }
 
-        let content = fs::read_to_string(path).ok()?;
+        let content = read_to_string(path).ok()?;
         let milli_celsius: i64 = content.trim().parse().ok()?;
 
         Some(milli_celsius as f64 / 1000.0)
@@ -59,20 +58,12 @@ impl SensorReader {
             return None;
         }
 
-        let content = fs::read_to_string(path).ok()?;
+        let content = read_to_string(path).ok()?;
         content.trim().parse::<i32>().ok()
     }
 
-    fn detect_cpu_temp_path() -> Option<PathBuf> {
-        const CPU_SENSOR_NAMES: &[&str] = &[
-            "coretemp",
-            "k10temp",
-            "zenpower",
-            "cpu_thermal",
-            "acpitz",
-        ];
-
-        if let Ok(entries) = fs::read_dir("/sys/class/hwmon") {
+    fn find_sensor_path(names: &[&str]) -> Option<PathBuf> {
+        if let Ok(entries) = read_dir("/sys/class/hwmon") {
             for entry in entries.flatten() {
                 let hwmon = entry.path();
 
@@ -82,88 +73,66 @@ impl SensorReader {
 
                 let name_path = hwmon.join("name");
 
-                let Ok(name) = fs::read_to_string(&name_path) else {
+                let Ok(name) = read_to_string(&name_path) else {
                     continue;
                 };
 
                 let name = name.trim().to_lowercase();
 
-                if CPU_SENSOR_NAMES
+                if names
                     .iter()
                     .any(|sensor_name| name.contains(sensor_name))
                 {
-                    let temp_path = hwmon.join("temp1_input");
-
-                    if temp_path.exists() {
-                        return Some(temp_path);
-                    }
+                    return Some(hwmon);
                 }
             }
         }
+        None
+    }
 
-        let thermal_path =
-            PathBuf::from("/sys/class/thermal/thermal_zone0/temp");
+    fn validate_path(hwmon: PathBuf, sensor_input: &str) -> Option<PathBuf> {
+        let path = hwmon.join(sensor_input);
 
-        if thermal_path.exists() {
-            return Some(thermal_path);
+        if path.exists() {
+            let Ok(content) = read_to_string(&path) else {
+                return None;
+            };
+
+            if let Ok(v) = content.trim().parse::<i32>() {
+                if sensor_input.contains("fan") {
+                    if v > 0 {
+                        return Some(path);
+                    }
+                } else if sensor_input.contains("temp") {
+                    return Some(path);
+                } else {
+                    return None;
+                }
+            }
         }
 
         None
     }
 
+    fn detect_cpu_temp_path() -> Option<PathBuf> {
+        let hwmon = match SensorReader::find_sensor_path(&CPU_TEM0) {
+            Some(p) => p,
+            None => match SensorReader::find_sensor_path(&CPU_TEM1) {
+                Some(p) => p,
+                None => return None
+            }
+        };
+
+        SensorReader::validate_path(hwmon, "temp1_input")
+    }
+
     fn detect_cpu_fan_path() -> Option<PathBuf> {
-        const FAN_SENSOR_NAMES: &[&str] = &[
-            "nct6687",
-            "nct6798",
-            "nct6775",
-            "nct",
-            "it87",
-            "asus",
-            "dell",
-        ];
+        let hwmon = match SensorReader::find_sensor_path(&CPU_FAN0) {
+            Some(p) => p,
+            None => return None
+        };
 
-        let entries = fs::read_dir("/sys/class/hwmon").ok()?;
-
-        for entry in entries.flatten() {
-            let hwmon = entry.path();
-
-            if !hwmon.is_dir() {
-                continue;
-            }
-
-            let name_path = hwmon.join("name");
-
-            let Ok(name) = fs::read_to_string(&name_path) else {
-                continue;
-            };
-
-            let name = name.trim().to_lowercase();
-
-            if !FAN_SENSOR_NAMES
-                .iter()
-                .any(|sensor_name| name.contains(sensor_name))
-            {
-                continue;
-            }
-
-            let fan_path = hwmon.join("fan1_input");
-
-            if !fan_path.exists() {
-                continue;
-            }
-
-            let Ok(content) = fs::read_to_string(&fan_path) else {
-                continue;
-            };
-
-            if let Ok(rpm) = content.trim().parse::<i32>() {
-                if rpm > 0 {
-                    return Some(fan_path);
-                }
-            }
-        }
-
-        None
+        SensorReader::validate_path(hwmon, "fan1_input")
     }
 
     pub fn list_available_sensors() -> Vec<SensorInfo> {
@@ -172,7 +141,7 @@ impl SensorReader {
         //
         // /sys/class/hwmon
         //
-        if let Ok(entries) = fs::read_dir("/sys/class/hwmon") {
+        if let Ok(entries) = read_dir("/sys/class/hwmon") {
             for entry in entries.flatten() {
                 let hwmon = entry.path();
 
@@ -180,11 +149,11 @@ impl SensorReader {
                     continue;
                 }
 
-                let name = fs::read_to_string(hwmon.join("name"))
+                let name = read_to_string(hwmon.join("name"))
                     .map(|s| s.trim().to_owned())
                     .unwrap_or_else(|_| "unknown".to_owned());
 
-                if let Ok(files) = fs::read_dir(&hwmon) {
+                if let Ok(files) = read_dir(&hwmon) {
                     for file in files.flatten() {
                         let path = file.path();
 
@@ -215,7 +184,7 @@ impl SensorReader {
         //
         // /sys/class/thermal
         //
-        if let Ok(entries) = fs::read_dir("/sys/class/thermal") {
+        if let Ok(entries) = read_dir("/sys/class/thermal") {
             for entry in entries.flatten() {
                 let zone = entry.path();
 
@@ -239,7 +208,7 @@ impl SensorReader {
                     continue;
                 }
 
-                let sensor_name = fs::read_to_string(zone.join("type"))
+                let sensor_name = read_to_string(zone.join("type"))
                     .map(|s| s.trim().to_owned())
                     .unwrap_or_else(|_| "thermal_zone".to_owned());
 
