@@ -1,10 +1,8 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright (C) 2024 BOREAS Linux Project Contributors
 mod data;
-mod config;
+mod configuration;
 mod device;
 mod protocol;
-mod sensors0;
+mod sensor;
 
 use std::env;
 use std::fs;
@@ -17,8 +15,8 @@ use std::sync::{
 use std::thread;
 use std::time::{Duration, Instant};
 
-use device::DeviceManager;
-use config::ConfigManager;
+use device::BoreasDevice;
+use configuration::ConfigManager;
 
 fn main() {
     let exit_code = run();
@@ -135,7 +133,7 @@ fn run_daemon(
     config: BoreasConfig,
     running: Arc<AtomicBool>,
 ) -> i32 {
-    let sensors = SensorReader::new(
+    let sensors = sensor::new(
         config.sensors.cpu_temp_path.clone(),
         config.sensors.cpu_fan_path.clone(),
     );
@@ -231,8 +229,8 @@ fn run_daemon(
 
 fn update_display(
     config: &BoreasConfig,
-    sensors: &SensorReader,
-    device: &mut BoreasDevice,
+    sensors: &sensor,
+    device: &mut device,
     current_display_index: &mut usize,
     last_rotation: &mut Instant,
 ) -> Result<(), Box<dyn std::error::Error>> {
@@ -267,7 +265,7 @@ fn update_display(
         DisplayMode::CpuTempFahrenheit => {
             if let Some(temp_c) = sensors.read_cpu_temperature() {
                 let temp_f =
-                    BoreasProtocol::celsius_to_fahrenheit(temp_c);
+                    protocol::celsius_to_fahrenheit(temp_c);
 
                 device.display_temperature(temp_f, false)?;
             }
@@ -309,7 +307,7 @@ Examples:
 fn list_sensors() {
     println!("Available sensors:\n");
 
-    for sensor in SensorReader::list_available_sensors() {
+    for sensor in sensor::list_available_sensors() {
         let value = read_sensor_display_value(
             &sensor.path,
             &sensor.sensor_type,
@@ -391,7 +389,7 @@ fn run_test() -> i32 {
          ==================="
     );
 
-    let mut device = BoreasDevice::new();
+    let mut device = device::new();
 
     if !device.connect() {
         eprintln!("Failed to connect to device.");
@@ -434,7 +432,7 @@ fn run_test() -> i32 {
 
     println!("Test 4: Live sensors...");
 
-    let sensors = SensorReader::new(None, None);
+    let sensors = sensor::new(None, None);
 
     if let Some(temp) = sensors.read_cpu_temperature() {
         println!("  CPU Temp: {:.1}°C", temp);

@@ -1,15 +1,18 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2024 BOREAS Linux Project Contributors
+
 use hidapi::{HidDevice, HidApi};
 
 use crate::data::PRODUCTS;
-use crate::protocol::protocol::{build_init_packet, build_fan_packet, build_temperature_packet};
+use crate::protocol::boreas_protocol::{build_init_packet, build_fan_packet, build_temperature_packet};
 
-pub struct DeviceManager {
+pub struct BoreasDevice {
     vendor_id: u16,
     product_id: u16,
     device: Option<HidDevice>,
 }
 
-impl DeviceManager {
+impl BoreasDevice {
     pub fn is_connected(&self) -> bool {
         self.device.is_some()
     }
@@ -63,7 +66,7 @@ impl DeviceManager {
     }
 }
 
-impl Drop for DeviceManager {
+impl Drop for BoreasDevice {
     fn drop(&mut self) {
         self.disconnect();
     }

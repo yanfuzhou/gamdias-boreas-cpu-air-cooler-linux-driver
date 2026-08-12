@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2024 BOREAS Linux Project Contributors
+
 use std::fs;
 use std::io;
 use std::path::Path;
@@ -42,7 +45,7 @@ pub struct SensorConfig {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(default)]
-pub struct ConfigManager {
+pub struct BoreasConfig {
     #[serde(rename = "UpdateIntervalMs", alias = "updateIntervalMs")]
     pub update_interval_ms: u64,
 
@@ -53,7 +56,7 @@ pub struct ConfigManager {
     pub display: Vec<DisplayItem>,
 }
 
-impl Default for ConfigManager {
+impl Default for BoreasConfig {
     fn default() -> Self {
         Self {
             update_interval_ms: 500,
@@ -61,12 +64,12 @@ impl Default for ConfigManager {
             display: vec![
                 DisplayItem { mode: DisplayMode::CpuTempCelsius, duration_seconds: 10 }, 
                 DisplayItem { mode: DisplayMode::CpuFanSpeed, duration_seconds: 6 }
-            ],
+            ]
         }
     }
 }
 
-impl ConfigManager {
+impl BoreasConfig {
     pub fn load<P: AsRef<Path>>(path: P) -> Result<Self, ConfigError> {
         let path = path.as_ref();
 
@@ -78,35 +81,15 @@ impl ConfigManager {
 
         let json = fs::read_to_string(path)?;
 
-        let config: ConfigManager =
-            serde_json::from_str(&json).map_err(ConfigError::Parse)?;
+        let config: BoreasConfig = serde_json::from_str(&json).map_err(ConfigError::Parse)?;
 
         Ok(config)
     }
 
     pub fn save_sample<P: AsRef<Path>>(path: P) -> Result<(), ConfigError> {
-        let sample = ConfigManager {
-            update_interval_ms: 500,
+        let sample = BoreasConfig::default();
 
-            sensors: SensorConfig {
-                cpu_temp_path: None,
-                cpu_fan_path: None,
-            },
-
-            display: vec![
-                DisplayItem {
-                    mode: DisplayMode::CpuTempCelsius,
-                    duration_seconds: 10,
-                },
-                DisplayItem {
-                    mode: DisplayMode::CpuFanSpeed,
-                    duration_seconds: 6,
-                },
-            ],
-        };
-
-        let json =
-            serde_json::to_string_pretty(&sample).map_err(ConfigError::Parse)?;
+        let json = serde_json::to_string_pretty(&sample).map_err(ConfigError::Parse)?;
 
         fs::write(path, json)?;
 

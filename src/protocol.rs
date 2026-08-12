@@ -1,4 +1,28 @@
-pub mod protocol {
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2024 BOREAS Linux Project Contributors
+
+/// <summary>
+/// USB HID protocol for GAMDIAS BOREAS displays.
+///
+/// Packet structure (64 bytes, only first 13 used):
+///   [0]  Header byte 1 (0x3A)
+///   [1]  Header byte 2 (0xB5)
+///   [2]  Command (0x01 for display, 0x20 for init)
+///   [3]  Digit 1 (thousands / leftmost)
+///   [4]  Digit 2 (hundreds)
+///   [5]  Digit 3 (tens)
+///   [6]  Digit 4 (ones / rightmost)
+///   [7]  Decimal point (0x01 = show between digit 3 and 4)
+///   [8]  Temperature unit (0x01 = Celsius, 0x00 = Fahrenheit)
+///   [9]  CPU indicator (0x01 = show CPU icon)
+///   [10] Display mode (0x00 = temperature, 0x01 = fan)
+///   [11] Flashing (0x01 = flash display)
+///   [12] Checksum (sum of bytes 0-11, masked with 0xFF)
+///
+/// Digit values: 0-9 for numbers, 0x20 for blank (leading zero suppression)
+/// </summary>
+
+pub mod boreas_protocol {
     const HEADER_1: u8 = 0x3A;
     const HEADER_2: u8 = 0xB5;
     const COMMAND_DISPLAY: u8 = 0x01;
