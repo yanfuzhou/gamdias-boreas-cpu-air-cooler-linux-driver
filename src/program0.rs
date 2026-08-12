@@ -1,22 +1,19 @@
 mod data;
-mod configuration;
+mod sensor;
 mod device;
 mod protocol;
-mod sensor;
+mod configuration;
 
-use std::env;
 use std::fs;
+use std::env;
+use std::thread;
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
-use std::sync::{
-    atomic::{AtomicBool, Ordering},
-    Arc,
-};
-use std::thread;
 use std::time::{Duration, Instant};
+use std::sync::{atomic::{AtomicBool, Ordering}, Arc};
 
 use device::BoreasDevice;
-use configuration::ConfigManager;
+use configuration::BoreasConfig;
 
 fn main() {
     let exit_code = run();
@@ -66,7 +63,7 @@ fn run() -> i32 {
         None => return 1,
     };
 
-    let config = match ConfigManager::load(&config_file) {
+    let config = match BoreasDevice::load(&config_file) {
         Ok(config) => {
             println!(
                 "Loaded configuration from: {}",
@@ -158,7 +155,7 @@ fn run_daemon(
         }
     }
 
-    let mut device = DeviceManager::new();
+    let mut device = BoreasDevice::new();
 
     println!("Connecting to BOREAS display...");
 
