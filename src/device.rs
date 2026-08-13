@@ -1,15 +1,24 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2024 BOREAS Linux Project Contributors
 
-use hidapi::{HidDevice, HidApi};
+use chrono::Local;
+use hidapi::{
+    HidApi, 
+    HidDevice
+};
+use notify_rust::Notification;
 
 use crate::data::PRODUCTS;
-use crate::protocol::boreas_protocol::{build_init_packet, build_fan_packet, build_temperature_packet};
+use crate::protocol::boreas_protocol::{
+    build_init_packet, 
+    build_fan_packet, 
+    build_temperature_packet
+};
 
 pub struct BoreasDevice {
     vendor_id: u16,
     product_id: u16,
-    device: Option<HidDevice>,
+    device: Option<HidDevice>
 }
 
 impl BoreasDevice {
@@ -17,7 +26,7 @@ impl BoreasDevice {
         Self {
             vendor_id: 0,
             product_id: 0,
-            device: None,
+            device: None
         }
     }
 
@@ -66,6 +75,10 @@ impl BoreasDevice {
     }
 
     pub fn display_temperature(&self, temperature: f64, celsius: bool, flashing: bool) -> bool {
+        let mut triggered: bool = false;
+        if !triggered {
+            trigger_alarm(temperature, celsius, &mut triggered);
+        }
         self.send_packet(&build_temperature_packet(temperature, celsius, flashing))
     }
 
@@ -78,4 +91,42 @@ impl Drop for BoreasDevice {
     fn drop(&mut self) {
         self.disconnect();
     }
+}
+
+fn trigger_alarm(temperature: f64, celsius: bool, triggered: &mut bool) {
+    if celsius {
+        if temperature > 95.0 { 
+            spawn_notification(
+                "CPU Temperature Alarm Triggered!", 
+                &format!("The CPU Temperature is above 95.0°C at {}.", Local::now()), 
+                "dialog-warning", 
+                0
+            );
+            *triggered = true;
+        } else {
+            *triggered = false;
+        }
+    } else {
+        if temperature > 203.0 {
+            spawn_notification(
+                "CPU Temperature Alarm Triggered!", 
+                &format!("The CPU Temperature is above 203.0°F at {}.", Local::now()), 
+                "dialog-warning", 
+                0
+            );
+            *triggered = true;
+        } else {
+            *triggered = false;
+        }
+    }
+}
+
+fn spawn_notification(summary: &str, body: &str, icon: &str, timeout: i32) {
+    Notification::new()
+        .summary(summary)
+        .body(body)
+        .icon(icon)
+        .timeout(timeout)
+        .show()
+        .expect("Error showing the CPU Temperature Alarm notification.");
 }

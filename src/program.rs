@@ -7,22 +7,45 @@ mod device;
 mod protocol;
 mod sensor;
 
-use std::env;
-use std::fs;
-use std::io::{self, Write};
-use std::path::{Path, PathBuf};
-use std::process;
-use std::sync::{
-    atomic::{AtomicBool, Ordering},
-    Arc,
+use std::{
+    env,
+    fs,
+    io::{
+        self, 
+        Write
+    },
+    path::{
+        Path, 
+        PathBuf
+    },
+    process, 
+    sync::{
+        atomic::{
+            AtomicBool, 
+            Ordering
+        }, 
+        Arc
+    },
+    thread,  
+    time::{
+        Duration, 
+        Instant
+    }
 };
-use std::thread;
-use std::time::{Duration, Instant};
 
-use signal_hook::consts::signal::{SIGINT, SIGTERM};
-use signal_hook::iterator::Signals;
+use signal_hook::{
+    consts::signal::{
+        SIGINT, 
+        SIGTERM
+    },
+    iterator::Signals
+};
 
-use crate::configuration::{BoreasConfig, DisplayItem, DisplayMode};
+use crate::configuration::{
+    BoreasConfig, 
+    DisplayItem, 
+    DisplayMode
+};
 use crate::device::BoreasDevice;
 use crate::protocol::boreas_protocol::celsius_to_fahrenheit;
 use crate::sensor::SensorReader;
@@ -304,15 +327,23 @@ fn run_test() -> i32 {
     let _ = device.display_temperature(42.5, true, false);
     thread::sleep(Duration::from_secs(2));
 
-    println!("Test 2: Fahrenheit 98.6°F");
+    println!("Test 2: Celsius 95.1°C");
+    let _ = device.display_temperature(95.1, true, false);
+    thread::sleep(Duration::from_secs(2));
+
+    println!("Test 3: Fahrenheit 98.6°F");
     let _ = device.display_temperature(98.6, false, false);
     thread::sleep(Duration::from_secs(2));
 
-    println!("Test 3: Fan 1234 RPM");
+    println!("Test 4: Fahrenheit 203.1°F");
+    let _ = device.display_temperature(203.1, false, false);
+    thread::sleep(Duration::from_secs(2));
+
+    println!("Test 5: Fan 1234 RPM");
     let _ = device.display_fan_speed(1234, false);
     thread::sleep(Duration::from_secs(2));
 
-    println!("Test 4: Live sensors...");
+    println!("Test 6: Live sensors...");
     let sensors = SensorReader::new(None, None);
 
     if let Some(temp) = sensors.read_cpu_temperature() {

@@ -6,9 +6,11 @@ This project provides a native Linux solution to display CPU temperature and fan
 
 | CPU Air Cooler | USB ID | Supported |
 |-|-|-|
-| [E2-41D](https://www.gamdias.com/en/component/cooler/BOREAS_E2-41D) | `????:????` | No |
-| [M2-51D](https://www.gamdias.com/en/component/cooler/BOREAS_M2-51D) | `1B80:B554` | Yes |
-| [P2-62D](https://www.gamdias.com/en/component/cooler/BOREAS_P2-62D) | `1B80:B53A` | Yes |
+| [BOREAS P2-62D](https://www.gamdias.com/en/component/cooler/BOREAS_P2-62D) | `1B80:B53A` | Yes |
+| [BOREAS M2-51D](https://www.gamdias.com/en/component/cooler/BOREAS_M2-51D) | `1B80:B554` | Yes |
+| [BOREAS E2-41D](https://www.gamdias.com/en/component/cooler/BOREAS_E2-41D) | `????:????` | No |
+| [CHIONE E4-240 V2](https://www.gamdias.com/en/component/cooler/CHIONE_E4-240_V2) | `????:????` | No |
+| [CHIONE E4-360 V2](https://www.gamdias.com/en/component/cooler/CHIONE_E4-360_V2) | `????:????` | No |
 
 ## Features
 
