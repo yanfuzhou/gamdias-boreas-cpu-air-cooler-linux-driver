@@ -227,11 +227,12 @@ The USB HID protocol was reverse-engineered from the Windows [ZEUS CAST](https:/
 
 ## License
 
-This project is licensed under the GNU General Public License v3.0 - see the LICENSE file for details.
+This project is licensed under the GNU General Public License v3.0 - see the COPYING file for details.
 
 ## Acknowledgments
 
 - GAMDIAS BOREAS P2-62D Linux Driver by [Riaan Aspeling](https://github.com/RiaanAspeling/gamdias-boreas-P2-62D-linux)
 - Protocol reverse-engineered from GAMDIAS [ZEUS CAST](https://drive.google.com/drive/folders/10FubPWd7OuR8bmZIC5IZPwABQP7xhAXr) Windows application
 - Uses [hidapi - Rust](https://docs.rs/hidapi/latest/hidapi/) for USB HID communication
+- NCT6687 driver by [Frederic BOLTZ](https://github.com/Fred78290/nct6687d)
 - IT87 driver by [Frank Crawford](https://github.com/frankcrawford/it87)
