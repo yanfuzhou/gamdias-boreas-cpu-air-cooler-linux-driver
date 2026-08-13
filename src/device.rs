@@ -13,6 +13,14 @@ pub struct BoreasDevice {
 }
 
 impl BoreasDevice {
+    pub fn new() -> Self {
+        Self {
+            vendor_id: 0,
+            product_id: 0,
+            device: None,
+        }
+    }
+
     pub fn is_connected(&self) -> bool {
         self.device.is_some()
     }

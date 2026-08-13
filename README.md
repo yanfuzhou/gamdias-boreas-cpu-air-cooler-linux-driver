@@ -21,8 +21,8 @@ This project provides a native Linux solution to display CPU temperature and fan
 
 ## Hardware
 
-- **Device**: GAMDIAS BOREAS M2-51D Digital Display
-- **USB ID**: `1B80:B554`
+- **Device**: GAMDIAS BOREAS M2-51D/P2-62D Digital Display
+- **USB ID**: `1B80:B554/B53A`
 - **Protocol**: USB HID
 - **Display**: 4-digit 7-segment with temperature/fan icons
 
@@ -32,7 +32,7 @@ This project provides a native Linux solution to display CPU temperature and fan
 - cargo 1.97.1 (c980f4866 2026-06-30)
 - Linux kernel with hwmon support
 
-### Install Dependencies
+### Install Rust
 
 ```bash
 # Arch Linux
@@ -51,9 +51,8 @@ cargo build --release
 ### 1. Build and Install Binary
 
 ```bash
-sudo mkdir -p /etc/boreas
-sudo cp target/release/boreas /etc/boreas/boreas
-sudo ln -sf /etc/boreas/boreas /usr/local/bin/boreas
+sudo cp target/release/boreas /usr/local/lib/boreas
+sudo ln -sf /usr/local/lib/boreas /usr/local/bin/boreas
 ```
 
 ### 2. Install udev Rules (for non-root access)
@@ -67,6 +66,7 @@ sudo udevadm trigger
 ### 3. Install Configuration
 
 ```bash
+sudo mkdir -p /etc/boreas
 sudo cp config.json /etc/boreas/
 ```
 
@@ -86,19 +86,19 @@ Edit `/etc/boreas/config.json`:
 
 ```json
 {
-  "update_interval_ms": 500,
-  "sensors": {
-    "cpu_temp_path": null,
-    "cpu_fan_path": null
+  "UpdateIntervalMs": 500,
+  "Sensors": {
+    "CpuTempPath": null,
+    "CpuFanPath": null
   },
-  "display": [
+  "Display": [
     {
-      "mode": "CpuTempCelsius",
-      "duration_seconds": 10
+      "Mode": "CpuTempCelsius",
+      "DurationSeconds": 10
     },
     {
-      "mode": "CpuFanSpeed",
-      "duration_seconds": 6
+      "Mode": "CpuFanSpeed",
+      "DurationSeconds": 6
     }
   ]
 }
@@ -108,10 +108,10 @@ Edit `/etc/boreas/config.json`:
 
 | Field | Description |
 |-------|-------------|
-| `update_interval_ms` | How often to update the display (milliseconds) |
-| `cpu_temp_path` | Path to temperature sensor, or `null` for auto-detect |
-| `cpu_fan_path` | Path to fan sensor, or `null` for auto-detect |
-| `display` | List of display modes to rotate through |
+| `UpdateIntervalMs` | How often to update the display (milliseconds) |
+| `CpuTempPath` | Path to temperature sensor, or `null` for auto-detect |
+| `CpuFanPath` | Path to fan sensor, or `null` for auto-detect |
+| `Display` | List of display modes to rotate through |
 
 ### Display Modes
 
@@ -124,6 +124,18 @@ Edit `/etc/boreas/config.json`:
 ```bash
 # Run with default config
 boreas
+
+# Run with custom config
+boreas /path/to/config.json
+
+# List available sensors
+boreas --list-sensors
+
+# Generate sample config
+boreas --generate-config
+
+# Run display test
+boreas --test
 ```
 
 ## Fan Speed Monitoring

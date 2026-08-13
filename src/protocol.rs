@@ -82,17 +82,22 @@ pub mod boreas_protocol {
     }
 
     fn extract_digits(value: i32, blank_leading_zeros: i32) -> (u8, u8, u8, u8) {
-        let d1 = (value / 1000) % 10;
-        let d2 = (value / 100) % 10;
-        let d3 = (value / 10) % 10;
-        let d4 = value % 10;
+        let mut d1 = (value / 1000) as u8;
+        let mut d2 = ((value / 100) % 10) as u8;
+        let mut d3 = ((value / 10) % 10) as u8;
+        let d4 = (value % 10) as u8;
 
-        let b1 = if blank_leading_zeros >= 4 && d1 == 0 { BLANK_DIGIT } else { d1 as u8 };
-        let b2 = if blank_leading_zeros >= 3 && d1 == 0 && d2 == 0 { BLANK_DIGIT } else { d2 as u8 };
-        let b3 = if blank_leading_zeros >= 2 && d1 == 0 && d2 == 0 && d3 == 0 { BLANK_DIGIT } else { d3 as u8 };
-        let b4 = d4 as u8;
+        if blank_leading_zeros >= 1 && d1 == 0 {
+            d1 = BLANK_DIGIT;
+            if blank_leading_zeros >= 2 && d2 == 0 {
+                d2 = BLANK_DIGIT;
+                if blank_leading_zeros >= 3 && d3 == 0 {
+                    d3 = BLANK_DIGIT;
+                }
+            }
+        }
 
-        (b1, b2, b3, b4)
+        (d1, d2, d3, d4)
     }
 
     fn calculate_checksum(packet: &[u8; PACKET_SIZE]) -> u8 {
