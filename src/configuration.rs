@@ -5,7 +5,10 @@ use std::fs;
 use std::io;
 use std::path::Path;
 
-use serde::{Deserialize, Serialize};
+use serde::{
+    Deserialize, 
+    Serialize
+};
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum DisplayMode {

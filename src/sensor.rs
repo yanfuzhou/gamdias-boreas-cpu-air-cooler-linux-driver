@@ -1,10 +1,20 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2024 BOREAS Linux Project Contributors
 
-use std::path::{Path, PathBuf};
-use std::fs::{read_dir, read_to_string};
+use std::path::{
+    Path, 
+    PathBuf
+};
+use std::fs::{
+    read_dir, 
+    read_to_string
+};
 
-use crate::data::{CPU_TEM0, CPU_TEM1, CPU_FAN0};
+use crate::data::{
+    CPU_TEM0, 
+    CPU_TEM1, 
+    CPU_FAN0
+};
 
 pub struct SensorReader {
     cpu_temp_path: Option<PathBuf>,
