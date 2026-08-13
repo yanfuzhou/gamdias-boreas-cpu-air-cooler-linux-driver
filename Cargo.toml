@@ -8,6 +8,7 @@ name = "boreas"
 path = "src/program.rs"
 
 [dependencies]
+chrono = "0.4.45"
 hidapi = "2.6.6"
 notify-rust = "4.18.0"
 serde = { version = "1.0.229", features = ["derive"] }
