@@ -1,6 +1,6 @@
 [package]
 name = "gamdias-boreas-air-cooler-linux-driver"
-version = "0.1.0"
+version = "2026.8.13"
 edition = "2024"
 
 [[bin]]
