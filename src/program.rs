@@ -7,22 +7,27 @@ mod device;
 mod protocol;
 mod sensor;
 
-use std::env;
-use std::fs;
-use std::io::{self, Write};
-use std::path::{Path, PathBuf};
-use std::process;
-use std::sync::{
-    atomic::{AtomicBool, Ordering},
-    Arc,
+use std::{
+    env,
+    fs,
+    io::{self, Write},
+    path::{Path, PathBuf},
+    process, 
+    sync::{atomic::{AtomicBool, Ordering}, Arc},
+    thread,  
+    time::{Duration, Instant}
 };
-use std::thread;
-use std::time::{Duration, Instant};
 
-use signal_hook::consts::signal::{SIGINT, SIGTERM};
-use signal_hook::iterator::Signals;
+use signal_hook::{
+    consts::signal::{SIGINT, SIGTERM},
+    iterator::Signals
+};
 
-use crate::configuration::{BoreasConfig, DisplayItem, DisplayMode};
+use crate::configuration::{
+    BoreasConfig, 
+    DisplayItem, 
+    DisplayMode
+};
 use crate::device::BoreasDevice;
 use crate::protocol::boreas_protocol::celsius_to_fahrenheit;
 use crate::sensor::SensorReader;
