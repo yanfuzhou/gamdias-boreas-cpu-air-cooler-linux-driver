@@ -1,79 +1,106 @@
-const HEADER1: u8 = 0x3A;
-const HEADER2: u8 = 0xB5;
-const COMMAND_DISPLAY: u8 = 0x01;
-const COMMAND_INIT: u8 = 0x20;
-const MODE_TEMPERATURE: u8 = 0x00;
-const MODE_FAN: u8 = 0x01;
-const UNIT_CELSIUS: u8 = 0x01;
-const UNIT_FAHRENHEIT: u8 = 0x00;
-const BLANK_DIGIT: u8 = 0x20;
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2024 BOREAS Linux Project Contributors
 
-const PACKET_SIZE: usize = 64;
+/// <summary>
+/// USB HID protocol for GAMDIAS BOREAS displays.
+///
+/// Packet structure (64 bytes, only first 13 used):
+///   [0]  Header byte 1 (0x3A)
+///   [1]  Header byte 2 (0xB5)
+///   [2]  Command (0x01 for display, 0x20 for init)
+///   [3]  Digit 1 (thousands / leftmost)
+///   [4]  Digit 2 (hundreds)
+///   [5]  Digit 3 (tens)
+///   [6]  Digit 4 (ones / rightmost)
+///   [7]  Decimal point (0x01 = show between digit 3 and 4)
+///   [8]  Temperature unit (0x01 = Celsius, 0x00 = Fahrenheit)
+///   [9]  CPU indicator (0x01 = show CPU icon)
+///   [10] Display mode (0x00 = temperature, 0x01 = fan)
+///   [11] Flashing (0x01 = flash display)
+///   [12] Checksum (sum of bytes 0-11, masked with 0xFF)
+///
+/// Digit values: 0-9 for numbers, 0x20 for blank (leading zero suppression)
+/// </summary>
 
-fn calculate_checksum(packet: [u8; 64]) -> u8 {
-    let mut sum = 0;
-    for i in 1..12 {
-        sum += packet[i]
-    };
-    sum
-}
+pub mod boreas_protocol {
+    const HEADER_1: u8 = 0x3A;
+    const HEADER_2: u8 = 0xB5;
+    const COMMAND_DISPLAY: u8 = 0x01;
+    const COMMAND_INIT: u8 = 0x20;
+    const MODE_TEMPERATURE: u8 = 0x00;
+    const MODE_FAN: u8 = 0x01;
+    const UNIT_CELSIUS: u8 = 0x01;
+    const UNIT_FAHRENHEIT: u8 = 0x00;
+    const BLANK_DIGIT: u8 = 0x20;
 
-fn extract_digits(value: i32, blank_leading_zeros: i32) -> (u8, u8, u8, u8) {
-    let mut d1 = (value / 1000) as u8;
-    let mut d2 = ((value / 100) % 10) as u8;
-    let mut d3 = ((value / 10) % 10) as u8;
-    let d4 = (value % 10) as u8;
+    pub const PACKET_SIZE: usize = 64;
 
-    if blank_leading_zeros >= 1 && d1 == 0 {
-        d1 = BLANK_DIGIT;
-        if blank_leading_zeros >= 2 && d2 == 0 {
-            d2 = BLANK_DIGIT;
-            if blank_leading_zeros >= 3 && d3 == 0 {
-                d3 = BLANK_DIGIT;
-            }
-        }
+    pub fn build_temperature_packet(temperature: f64, celsius: bool, flashing: bool) -> [u8; PACKET_SIZE] {
+        let value = ((temperature * 10.0) as i32).clamp(0, 9999);
+        let (d1, d2, d3, d4) = extract_digits(value, 2);
+        build_packet(d1, d2, d3, d4, true, if celsius { UNIT_CELSIUS } else { UNIT_FAHRENHEIT }, true, MODE_TEMPERATURE, flashing)
     }
 
-    (d1, d2, d3, d4)
-}
+    pub fn build_fan_packet(rpm: i32, flashing: bool) -> [u8; PACKET_SIZE] {
+        let value = rpm.clamp(0, 9999);
+        let (d1, d2, d3, d4) = extract_digits(value, 3);
+        build_packet(d1, d2, d3, d4, false, 0x00, false, MODE_FAN, flashing)
+    }
 
-fn build_packet(d1: u8, d2: u8, d3: u8, d4: u8, has_decimal: bool, unit: u8, show_cpu_icon: bool, mode: u8, flashing: bool) -> [u8; 64] {
-    let mut packet = [0u8; PACKET_SIZE];
-    packet[0] = HEADER1;
-    packet[1] = HEADER2;
-    packet[2] = COMMAND_DISPLAY;
-    packet[3] = d1;
-    packet[4] = d2;
-    packet[5] = d3;
-    packet[6] = d4;
-    packet[7] = if has_decimal { 0x01 } else { 0x00 };
-    packet[8] = unit;
-    packet[9] = if show_cpu_icon { 0x01 } else { 0x00 };
-    packet[10] = mode;
-    packet[11] = if flashing { 0x01 } else { 0x00 };
-    packet[12] = calculate_checksum(packet);
-    packet
-}
+    pub fn build_init_packet() -> [u8; PACKET_SIZE] {
+        let mut packet = [0u8; PACKET_SIZE];
+        packet[0] = HEADER_1;
+        packet[1] = HEADER_2;
+        packet[2] = COMMAND_INIT;
+        packet[12] = calculate_checksum(&packet);
+        packet
+    }
 
-pub fn build_init_packet() -> [u8; 64] {
-    let mut packet = [0u8; PACKET_SIZE];
-    packet[0] = HEADER1;
-    packet[1] = HEADER2;
-    packet[2] = COMMAND_INIT;
-    packet[12] = calculate_checksum(packet);
-    packet
-}
+    pub fn celsius_to_fahrenheit(celsius: f64) -> f64 {
+        celsius * 9.0 / 5.0 + 32.0
+    }
 
-pub fn build_temperature_packet(temp: f32, celsius: bool, flashing: bool) -> [u8; 64] {
-    let value = ((temp * 10.0) as i32).clamp(0, 9999);
-    let (d1, d2, d3, d4) = extract_digits(value, 2);
-    let packet = build_packet(d1, d2, d3, d4, true, if celsius { UNIT_CELSIUS } else { UNIT_FAHRENHEIT }, true, MODE_TEMPERATURE, flashing);
-    packet
-}
+    fn build_packet(
+        d1: u8, d2: u8, d3: u8, d4: u8,
+        has_decimal: bool, unit: u8, show_cpu_icon: bool, mode: u8, flashing: bool
+    ) -> [u8; PACKET_SIZE] {
+        let mut packet = [0u8; PACKET_SIZE];
+        packet[0] = HEADER_1;
+        packet[1] = HEADER_2;
+        packet[2] = COMMAND_DISPLAY;
+        packet[3] = d1;
+        packet[4] = d2;
+        packet[5] = d3;
+        packet[6] = d4;
+        packet[7] = if has_decimal { 0x01 } else { 0x00 };
+        packet[8] = unit;
+        packet[9] = if show_cpu_icon { 0x01 } else { 0x00 };
+        packet[10] = mode;
+        packet[11] = if flashing { 0x01 } else { 0x00 };
+        packet[12] = calculate_checksum(&packet);
+        packet
+    }
 
-pub fn build_fan_packet(rpm: i32, flashing: bool) -> [u8; 64] {
-    let value = rpm.clamp(0, 9999);
-    let (d1, d2, d3, d4) = extract_digits(value, 3);
-    let packet = build_packet(d1, d2, d3, d4, false, 0x00, false, MODE_FAN, flashing);
-    packet
+    fn extract_digits(value: i32, blank_leading_zeros: i32) -> (u8, u8, u8, u8) {
+        let mut d1 = (value / 1000) as u8;
+        let mut d2 = ((value / 100) % 10) as u8;
+        let mut d3 = ((value / 10) % 10) as u8;
+        let d4 = (value % 10) as u8;
+
+        if blank_leading_zeros >= 1 && d1 == 0 {
+            d1 = BLANK_DIGIT;
+            if blank_leading_zeros >= 2 && d2 == 0 {
+                d2 = BLANK_DIGIT;
+                if blank_leading_zeros >= 3 && d3 == 0 {
+                    d3 = BLANK_DIGIT;
+                }
+            }
+        }
+
+        (d1, d2, d3, d4)
+    }
+
+    fn calculate_checksum(packet: &[u8; PACKET_SIZE]) -> u8 {
+        packet[0..12].iter().fold(0u8, |acc, &x| acc.wrapping_add(x))
+    }
 }
