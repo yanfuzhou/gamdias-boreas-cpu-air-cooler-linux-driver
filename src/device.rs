@@ -96,14 +96,24 @@ impl Drop for BoreasDevice {
 fn trigger_alarm(temperature: f64, celsius: bool, triggered: &mut bool) {
     if celsius {
         if temperature > 95.0 { 
-            spawn_notification("CPU Temperature Alarm Triggered!", &format!("The CPU Temperature is above 95.0°C at {}.", Local::now()), "dialog-warning", 0);
+            spawn_notification(
+                "CPU Temperature Alarm Triggered!", 
+                &format!("The CPU Temperature is above 95.0°C at {}.", Local::now()), 
+                "dialog-warning", 
+                0
+            );
             *triggered = true;
         } else {
             *triggered = false;
         }
     } else {
         if temperature > 203.0 {
-            spawn_notification("CPU Temperature Alarm Triggered!", &format!("The CPU Temperature is above 203.0°F at {}.", Local::now()), "dialog-warning", 0);
+            spawn_notification(
+                "CPU Temperature Alarm Triggered!", 
+                &format!("The CPU Temperature is above 203.0°F at {}.", Local::now()), 
+                "dialog-warning", 
+                0
+            );
             *triggered = true;
         } else {
             *triggered = false;
