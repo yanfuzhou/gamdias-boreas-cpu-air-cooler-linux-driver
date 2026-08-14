@@ -77,7 +77,7 @@ impl BoreasDevice {
     pub fn display_temperature(&self, temperature: f64, celsius: bool, flashing: bool) -> bool {
         let mut triggered: bool = false;
         if !triggered {
-            trigger_alarm(temperature, celsius, &mut triggered);
+            trigger_alert(temperature, celsius, &mut triggered);
         }
         self.send_packet(&build_temperature_packet(temperature, celsius, flashing))
     }
@@ -93,12 +93,12 @@ impl Drop for BoreasDevice {
     }
 }
 
-fn trigger_alarm(temperature: f64, celsius: bool, triggered: &mut bool) {
+fn trigger_alert(temperature: f64, celsius: bool, triggered: &mut bool) {
     if celsius {
         if temperature > 95.0 { 
             spawn_notification(
-                "CPU Temperature Alarm Triggered!", 
-                &format!("The CPU Temperature is above 95.0°C at {}.", Local::now()), 
+                "High CPU Usage Alert", 
+                &format!("CPU Temp > 95.0°C\nPerformance may slowdown\n(@{})", Local::now()), 
                 "dialog-warning", 
                 0
             );
@@ -109,8 +109,8 @@ fn trigger_alarm(temperature: f64, celsius: bool, triggered: &mut bool) {
     } else {
         if temperature > 203.0 {
             spawn_notification(
-                "CPU Temperature Alarm Triggered!", 
-                &format!("The CPU Temperature is above 203.0°F at {}.", Local::now()), 
+                "High CPU Usage Alert", 
+                &format!("CPU Temp > 203.0°F\nPerformance may slowdown\n(@{})", Local::now()), 
                 "dialog-warning", 
                 0
             );
